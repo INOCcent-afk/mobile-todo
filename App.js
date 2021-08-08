@@ -1,7 +1,16 @@
 import React from "react";
 import { StatusBar } from "expo-status-bar";
-import { FlatList, StyleSheet, View, Text } from "react-native";
+import {
+  FlatList,
+  StyleSheet,
+  View,
+  Alert,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
 import Header from "./components/Header";
+import TodoItem from "./components/TodoItem";
+import AddTodo from "./components/AddTodo";
 
 export default function App() {
   const [todos, setTodos] = React.useState([
@@ -10,25 +19,49 @@ export default function App() {
     { text: "play on the switch", key: "3" },
   ]);
 
+  const pressHandler = (key) => {
+    setTodos((prevTodos) => prevTodos.filter((todo) => todo.key !== key));
+  };
+
+  const submitHandler = (text) => {
+    if (text.length > 3) {
+      setTodos((prevTodos) => {
+        return [{ text, key: Math.random().toString() }, ...prevTodos];
+      });
+    } else {
+      Alert.alert("OOPS!", "todos must be over 3 chars long", [
+        {
+          text: "Understood",
+          onPress: () => console.log("alert closed"),
+        },
+      ]);
+    }
+  };
+
   return (
-    <>
-      <Header />
+    <TouchableWithoutFeedback
+      onPress={() => {
+        Keyboard.dismiss();
+      }}
+    >
       <View style={styles.container}>
         {/* header */}
-
+        <Header />
         <View style={styles.content}>
-          {/* todo form */}
+          <AddTodo submitHandler={submitHandler} />
           <View style={styles.list}>
             <FlatList
               data={todos}
-              renderItem={({ item }) => <Text>{item.text}</Text>}
+              renderItem={({ item }) => (
+                <TodoItem item={item} pressHandler={pressHandler} />
+              )}
             />
           </View>
         </View>
 
         <StatusBar style="auto" />
       </View>
-    </>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -36,13 +69,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    paddingTop: 40,
-    paddingHorizontal: 20,
   },
   content: {
     padding: 40,
   },
-
   list: {
     marginTop: 20,
   },
